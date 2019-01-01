@@ -92,15 +92,12 @@ export default class App extends Component<{}, State> {
   private getNewDieValue = () => Math.floor(Math.random() * MAX_DIE_VALUE) + 1; // Add 1 because we want 1 - 6 not 0 - 5
 
   private getScoringDice = (dice: Die[]) => {
-    // return [1, 2, 3, 4, 5, 6];
-    console.log('Scoring Dice');
-    console.log(dice);
     return dice.map((die) => die.value);
   }
 
   private calculateScore = (currentDice: number[]) => {
-    return Object.entries(scoringOpportunities).reduce(
-      (score, [_, opportunity]: [string, scoringOpportunity]) => {
+    return scoringOpportunities.reduce(
+      (score: number, opportunity: scoringOpportunity) => {
         if (opportunity.validator([...currentDice])) {
           console.log(opportunity.displayName);
           return score + opportunity.score;
