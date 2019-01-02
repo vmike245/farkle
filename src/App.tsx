@@ -11,8 +11,8 @@
 import React, { Component } from "react";
 import { Button, Platform, StyleSheet, Text, View } from "react-native";
 import { MAX_DIE_VALUE } from "./constants";
-import { scoringOpportunities } from "./scoring";
-import { Die, scoringOpportunity } from "./types";
+import ScoreCalculator from "./scoring";
+import { DiceMap, Die, scoringOpportunity } from "./types";
 
 const instructions = Platform.select({
   android:
@@ -91,29 +91,17 @@ export default class App extends Component<{}, State> {
 
   private getNewDieValue = () => Math.floor(Math.random() * MAX_DIE_VALUE) + 1; // Add 1 because we want 1 - 6 not 0 - 5
 
-  private getScoringDice = (dice: Die[]) => {
-    return dice.map((die) => die.value);
-  }
-
-  private calculateScore = (currentDice: number[]) => {
-    return scoringOpportunities.reduce(
-      (score: number, opportunity: scoringOpportunity) => {
-        if (opportunity.validator([...currentDice])) {
-          console.log(opportunity.displayName);
-          return score + opportunity.score;
-        }
-        return score;
-      },
-      0,
-    );
+  private calculateScore = (currentDice: Die[]) => {
+    const scoreCalc = new ScoreCalculator(currentDice);
+    return scoreCalc.getScore();
   }
   private rollDice = () => {
     const { score, currentDice } = this.state;
-    const diceKeptThisRoll = currentDice.filter(
-      (die) => die.isHeld && !die.isPermanentlyHeld,
-    );
-    const newScore =
-      score + this.calculateScore(this.getScoringDice(diceKeptThisRoll));
+    // const diceKeptThisRoll = currentDice.filter(
+    //   (die) => die.isHeld && !die.isPermanentlyHeld,
+    // );
+    // const newScore =
+    //   score + this.calculateScore(this.generateDiceMap(diceKeptThisRoll));
     const newDice = currentDice.map((die) => {
       if (die.isHeld || die.isPermanentlyHeld) {
         die.isPermanentlyHeld = true;
@@ -123,11 +111,11 @@ export default class App extends Component<{}, State> {
     });
     const possiblyScoringDice = newDice.filter((die) => !die.isPermanentlyHeld);
     const possibleScore =
-      this.calculateScore(this.getScoringDice(possiblyScoringDice));
+      this.calculateScore(possiblyScoringDice);
     this.setState({
       currentDice: newDice,
       possibleScore,
-      score: newScore,
+      score: 0,
     });
   }
 

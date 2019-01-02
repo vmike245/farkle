@@ -4,6 +4,7 @@
       "max-line-length": {
           "options": [120]
       },
+      "one-line": false,
       "no-any": true,
       "only-arrow-functions": true,
       "await-promise": true,
