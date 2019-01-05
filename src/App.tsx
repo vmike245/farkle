@@ -92,8 +92,19 @@ export default class App extends Component<{}, State> {
   private getNewDieValue = () => Math.floor(Math.random() * MAX_DIE_VALUE) + 1; // Add 1 because we want 1 - 6 not 0 - 5
 
   private calculateScore = (currentDice: Die[]) => {
-    const scoreCalc = new ScoreCalculator(currentDice);
+    const dieValues = currentDice.map((die) => die.value);
+    const scoreCalc = new ScoreCalculator(dieValues);
     return scoreCalc.getScore();
+  }
+
+  private getNewDice = (dice: Die[]) => {
+    return dice.map((die) => {
+      if (die.isHeld || die.isPermanentlyHeld) {
+        die.isPermanentlyHeld = true;
+        return die;
+      }
+      return { ...die, value: this.getNewDieValue() };
+    });
   }
   private rollDice = () => {
     const { score, currentDice } = this.state;
@@ -102,16 +113,9 @@ export default class App extends Component<{}, State> {
     // );
     // const newScore =
     //   score + this.calculateScore(this.generateDiceMap(diceKeptThisRoll));
-    const newDice = currentDice.map((die) => {
-      if (die.isHeld || die.isPermanentlyHeld) {
-        die.isPermanentlyHeld = true;
-        return die;
-      }
-      return { ...die, value: this.getNewDieValue() };
-    });
+    const newDice = this.getNewDice(currentDice);
     const possiblyScoringDice = newDice.filter((die) => !die.isPermanentlyHeld);
-    const possibleScore =
-      this.calculateScore(possiblyScoringDice);
+    const possibleScore = this.calculateScore(possiblyScoringDice);
     this.setState({
       currentDice: newDice,
       possibleScore,
