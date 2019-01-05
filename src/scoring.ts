@@ -1,10 +1,8 @@
 export default class ScoreCalculator {
-  private score: number;
   private currentDice: number[];
 
   constructor(currentDice: number[]) {
     this.currentDice = this.generateDiceMap(currentDice);
-    this.score = 0;
   }
 
   public getScore = () => {
@@ -22,6 +20,10 @@ export default class ScoreCalculator {
       this.five,
     ];
     return scoringFunctions.reduce((score, fn) => score + fn(), 0);
+  }
+
+  public getRemainingDiceCount() {
+    return this.currentDice.reduce((count, dieCount) => count + dieCount);
   }
 
   private generateDiceMap = (dieValues: number[]) => {

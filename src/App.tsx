@@ -100,33 +100,72 @@ export default class App extends Component<{}, State> {
   private getNewDice = (dice: Die[]) => {
     return dice.map((die) => {
       if (die.isHeld || die.isPermanentlyHeld) {
-        die.isPermanentlyHeld = true;
         return die;
       }
       return { ...die, value: this.getNewDieValue() };
     });
   }
+
+  private allDiceHeld = (dice: Die[]) =>
+    dice.every(({ isPermanentlyHeld }) => isPermanentlyHeld)
+
+  private resetDice = (dice: Die[]): Die[] => {
+    return dice.map((die) => ({
+      ...die,
+      isHeld: false,
+      isPermanentlyHeld: false,
+    }));
+  }
+
+  private updatePermanentHold = (dice: Die[]): Die[] => {
+    return dice.map((die) => {
+      if (die.isPermanentlyHeld) {
+        return {
+          ...die,
+          isHeld: false,
+        };
+      } else if (die.isHeld) {
+        return {
+          ...die,
+          isHeld: false,
+          isPermanentlyHeld: true,
+        };
+      } else {
+        return { ...die };
+      }
+    });
+  }
+
   private rollDice = () => {
     const { score, currentDice } = this.state;
-    // const diceKeptThisRoll = currentDice.filter(
-    //   (die) => die.isHeld && !die.isPermanentlyHeld,
-    // );
-    // const newScore =
-    //   score + this.calculateScore(this.generateDiceMap(diceKeptThisRoll));
-    const newDice = this.getNewDice(currentDice);
+
+    const diceKeptThisRoll = currentDice.filter(
+      (die) => die.isHeld && !die.isPermanentlyHeld,
+    );
+    const newScore = score + this.calculateScore(diceKeptThisRoll);
+
+    const updateDice = this.updatePermanentHold(currentDice);
+
+    const newDice = this.allDiceHeld(updateDice)
+      ? this.getNewDice(this.resetDice(updateDice))
+      : this.getNewDice(updateDice);
+
     const possiblyScoringDice = newDice.filter((die) => !die.isPermanentlyHeld);
     const possibleScore = this.calculateScore(possiblyScoringDice);
+
     this.setState({
       currentDice: newDice,
       possibleScore,
-      score: 0,
+      score: newScore,
     });
   }
 
   private holdDie = (index: number) => () => {
     const { currentDice } = this.state;
     const currentDiceCopy = [...currentDice];
-    currentDiceCopy[index].isHeld = !currentDiceCopy[index].isHeld;
+    currentDiceCopy[index].isHeld = currentDiceCopy[index].isPermanentlyHeld
+      ? currentDiceCopy[index].isHeld
+      : !currentDiceCopy[index].isHeld;
     this.setState({ currentDice: currentDiceCopy });
   }
 }
